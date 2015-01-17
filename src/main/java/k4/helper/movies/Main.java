@@ -1,108 +1,101 @@
 package k4.helper.movies;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Scanner;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class Main {
 
+	private static SiteDownloader connector = new SiteDownloader();
+	private static SiteParser parser = new SiteParser();
+	private static ArrayList<String> finalList = new ArrayList<String>();
+	private static HashMap<String, String> finalMap = new HashMap<String, String>();
+
 	public static void main(String[] args) {
+		Scanner input = new Scanner(System.in);
+		System.out.print("Podaj pierwszego użytkownika: ");
+		String name1 = input.nextLine();
+		System.out.print("Podaj drugiego użytkownika: ");
+		String name2 = input.nextLine();
+		input.close();
+		getMovieList(name1, name2);
 
-		String url1 = "http://www.filmweb.pl/user/kamon4/films/wanna-see";
-		String url2 = "http://www.filmweb.pl/user/mrukot/films/wanna-see";
+	}
 
-		String site1 = getSite(url1);
-		String site2 = getSite(url2);
+	public static void getMovieList(String username1, String username2) {
 
-		Document doc1 = Jsoup.parse(site1);
-		Document doc2 = Jsoup.parse(site2);
+		User user1 = new User(username1);
+		User user2 = new User(username2);
 
-		ArrayList<String> list1 = getMovieList(doc1);
-		ArrayList<String> list2 = getMovieList(doc2);
+		String site1 = connector.getWatchlist(user1);
+		String site2 = connector.getWatchlist(user2);
 
-		list1.retainAll(list2);
-		System.out.println(list1.size());
-		for (String movie : list1) {
+		user1.setWatchlist(parser.parseSourceForMovieList(site1));
+		user2.setWatchlist(parser.parseSourceForMovieList(site2));
+
+		finalList = user1.compareTo(user2);
+		System.out.println("Znaleziono " + finalList.size()
+				+ " wspólnych filmów!");
+		for (String movie : finalList) {
 			System.out.println(movie);
+			finalMap.put(movie, user1.getWatchlist().get(movie));
 		}
 
+		String movie1 = connector.getMovie(finalMap.get(finalList.get(0)));
+
+		System.out.println(getYear(movie1));
+		System.out.println(getDirector(movie1));
+		System.out.println(getGenre(movie1));
+		System.out.println(getProduction(movie1));
+		System.out.println(getPoster(movie1));
 	}
 
-	private static ArrayList<String> getMovieList(Document doc) {
-		ArrayList<String> temp = new ArrayList<String>();
-		Elements content1 = doc.getElementsByAttribute("href");
-		for (org.jsoup.nodes.Element element : content1) {
-			Elements content2 = element.getElementsByAttributeValueContaining(
-					"href", "/film/");
-			for (org.jsoup.nodes.Element element2 : content2) {
-				Elements content3 = element2.getElementsByAttributeValueNot(
-						"class", "fNoImg0");
-				for (org.jsoup.nodes.Element element3 : content3) {
-					Elements content4 = element3.getElementsByAttribute("href");
-					for (int i = 0; i < content4.size(); i++) {
-						temp.add(content4.text());
-					}
-				}
-			}
-		}
-
-		return temp;
+	private static String getPoster(String movie) {
+		Document doc = Jsoup.parse(movie);
+		Elements content = doc.getElementsByAttributeValue("rel", "v:image");
+		return content.attr("href");
 	}
 
-	private static String getSite(String url) {
-		System.out.println("Getting list for: " + url);
-		try {
-			URL connector = new URL(url);
-			HttpURLConnection httpConnection = (HttpURLConnection) connector
-					.openConnection();
-
-			httpConnection.addRequestProperty("Host", "www.filmweb.pl");
-			httpConnection.addRequestProperty("Connection", "keep-alive");
-			httpConnection.addRequestProperty("Cache-Control", "max-age=0");
-			httpConnection
-					.addRequestProperty("Accept",
-							"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-			httpConnection
-					.addRequestProperty(
-							"User-Agent",
-							"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36");
-			httpConnection.addRequestProperty("Accept-Encoding",
-					"gzip,deflate,sdch");
-			httpConnection.addRequestProperty("Accept-Language",
-					"en-US,en;q=0.8");
-			HttpURLConnection.setFollowRedirects(false);
-			httpConnection.setInstanceFollowRedirects(false);
-			httpConnection.setDoOutput(true);
-			httpConnection.setUseCaches(true);
-
-			httpConnection.setRequestMethod("GET");
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					httpConnection.getInputStream(), "UTF-8"));
-			String inputLine;
-			StringBuilder a = new StringBuilder();
-			while ((inputLine = in.readLine()) != null)
-				a.append(inputLine);
-			in.close();
-			httpConnection.disconnect();
-			return a.toString();
-		} catch (MalformedURLException e) {
-			System.out.println("Failed when setting URL!" + e);
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println("Failed when setting HttpURLConnection!" + e);
-			e.printStackTrace();
+	private static String getGenre(String movie) {
+		Document doc = Jsoup.parse(movie);
+		Elements content = doc.getElementsByAttributeValueContaining("href",
+				"/search/film?genreIds=");
+		String result = "";
+		for (Element element : content) {
+			result += (element.text() + ", ");
 		}
+		result = result.substring(0, result.length() - 2);
+		return result;
+	}
 
-		return "";
+	private static String getProduction(String movie) {
+		Document doc = Jsoup.parse(movie);
+		Elements content = doc.getElementsByAttributeValueContaining("href",
+				"/search/film?countryIds=");
+		String result = "";
+		for (Element element : content) {
+			result += (element.text() + ", ");
+		}
+		result = result.substring(0, result.length() - 2);
+		return result;
+	}
 
+	private static String getYear(String movie) {
+		Document doc = Jsoup.parse(movie);
+		Elements content = doc.getElementsByClass("halfsize");
+		String result = content.text();
+		return result.substring(1, result.length() - 1);
+	}
+
+	private static String getDirector(String movie) {
+		Document doc = Jsoup.parse(movie);
+		Elements content = doc.getElementsByAttributeValue("rel",
+				"v:directedBy");
+		return content.text();
 	}
 }
