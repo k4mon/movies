@@ -36,11 +36,11 @@ public class Main {
 		String site = connector.getWatchlist(user);
 		user.setWatchlist(parser.parseSourceForMovieList(site));
 		ArrayList<String> list = user.getWatchlist();
-		System.out.println("Lista ma " + list.size() + " pozycji!");
+		System.out.println("Lista ma " + list.size() + " pozycji!\n");
 		int randomMovieNumber = GENERATOR.nextInt(list.size());
+		String movieURL = user.getWatchlist().get(randomMovieNumber);
 
-		String movieData = connector.getMovie(user.getWatchlist().get(
-				randomMovieNumber));
+		String movieData = connector.getMovie(movieURL);
 
 		System.out.println("Twój film na dzisiaj to: " + getName(movieData));
 		System.out.println(getYear(movieData));
@@ -48,6 +48,7 @@ public class Main {
 		System.out.println(getGenre(movieData));
 		System.out.println(getProduction(movieData));
 		System.out.println(getPoster(movieData));
+		System.out.println(getDescription(movieURL));
 	}
 
 	private static void getMovieList(String username1, String username2) {
@@ -63,7 +64,7 @@ public class Main {
 
 		finalList = user1.compareTo(user2);
 		System.out.println("Znaleziono " + finalList.size()
-				+ " wspólnych filmów!");
+				+ " wspólnych filmów!\n");
 
 		int randomMovieNumber = GENERATOR.nextInt(finalList.size());
 
@@ -128,5 +129,18 @@ public class Main {
 		Elements content = doc.getElementsByAttributeValue("rel",
 				"v:directedBy");
 		return content.text();
+	}
+
+	private static String getDescription(String movieURL) {
+		String descMovieURL = movieURL + "/descs";
+		String movieDescData = connector.getMovie(descMovieURL);
+		Document doc = Jsoup.parse(movieDescData);
+		Element content = getDescriptionTag(doc);
+		return content.text();
+	}
+
+	private static Element getDescriptionTag(Document doc) {
+		return doc.getElementsByClass("def").get(0)
+				.getElementsByAttributeValueMatching("class", "text").get(0);
 	}
 }
