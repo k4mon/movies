@@ -1,7 +1,7 @@
 package k4.helper.movies;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Random;
 import java.util.Scanner;
 
 import org.jsoup.Jsoup;
@@ -14,7 +14,7 @@ public class Main {
 	private static SiteDownloader connector = new SiteDownloader();
 	private static SiteParser parser = new SiteParser();
 	private static ArrayList<String> finalList = new ArrayList<String>();
-	private static HashMap<String, String> finalMap = new HashMap<String, String>();
+	private final static Random GENERATOR = new Random();
 
 	public static void main(String[] args) {
 		Scanner input = new Scanner(System.in);
@@ -23,11 +23,34 @@ public class Main {
 		System.out.print("Podaj drugiego użytkownika: ");
 		String name2 = input.nextLine();
 		input.close();
-		getMovieList(name1, name2);
-
+		if (name2.equals("")) {
+			getMovieList(name1);
+		} else {
+			getMovieList(name1, name2);
+		}
 	}
 
-	public static void getMovieList(String username1, String username2) {
+	private static void getMovieList(String username) {
+
+		User user = new User(username);
+		String site = connector.getWatchlist(user);
+		user.setWatchlist(parser.parseSourceForMovieList(site));
+		ArrayList<String> list = user.getWatchlist();
+		System.out.println("Lista ma " + list.size() + " pozycji!");
+		int randomMovieNumber = GENERATOR.nextInt(list.size());
+
+		String movieData = connector.getMovie(user.getWatchlist().get(
+				randomMovieNumber));
+
+		System.out.println("Twój film na dzisiaj to: " + getName(movieData));
+		System.out.println(getYear(movieData));
+		System.out.println(getDirector(movieData));
+		System.out.println(getGenre(movieData));
+		System.out.println(getProduction(movieData));
+		System.out.println(getPoster(movieData));
+	}
+
+	private static void getMovieList(String username1, String username2) {
 
 		User user1 = new User(username1);
 		User user2 = new User(username2);
@@ -41,18 +64,26 @@ public class Main {
 		finalList = user1.compareTo(user2);
 		System.out.println("Znaleziono " + finalList.size()
 				+ " wspólnych filmów!");
-		for (String movie : finalList) {
-			System.out.println(movie);
-			finalMap.put(movie, user1.getWatchlist().get(movie));
-		}
 
-		String movie1 = connector.getMovie(finalMap.get(finalList.get(0)));
+		int randomMovieNumber = GENERATOR.nextInt(finalList.size());
 
-		System.out.println(getYear(movie1));
-		System.out.println(getDirector(movie1));
-		System.out.println(getGenre(movie1));
-		System.out.println(getProduction(movie1));
-		System.out.println(getPoster(movie1));
+		String movieData = connector.getMovie(finalList.get(randomMovieNumber));
+
+		System.out.println("Film wylosowany dla Was to: " + getName(movieData)
+				+ " !");
+		System.out.println(getYear(movieData));
+		System.out.println(getDirector(movieData));
+		System.out.println(getGenre(movieData));
+		System.out.println(getProduction(movieData));
+		System.out.println(getPoster(movieData));
+	}
+
+	private static String getName(String movie) {
+		Document doc = Jsoup.parse(movie);
+		Elements content = doc.getElementsByAttributeValue("property",
+				"og:title");
+		return content.attr("content");
+
 	}
 
 	private static String getPoster(String movie) {
