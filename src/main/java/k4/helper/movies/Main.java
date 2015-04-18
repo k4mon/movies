@@ -15,19 +15,19 @@ public class Main {
 	private static SiteParser parser = new SiteParser();
 	private static ArrayList<String> finalList = new ArrayList<String>();
 	private final static Random GENERATOR = new Random();
+	private static Scanner input = new Scanner(System.in);
 
 	public static void main(String[] args) {
-		Scanner input = new Scanner(System.in);
 		System.out.print("Podaj pierwszego użytkownika: ");
 		String name1 = input.nextLine();
 		System.out.print("Podaj drugiego użytkownika: ");
 		String name2 = input.nextLine();
-		input.close();
 		if (name2.equals("")) {
 			getMovieList(name1);
 		} else {
 			getMovieList(name1, name2);
 		}
+		input.close();
 	}
 
 	private static void getMovieList(String username) {
@@ -36,7 +36,25 @@ public class Main {
 		String site = connector.getWatchlist(user);
 		user.setWatchlist(parser.parseSourceForMovieList(site));
 		ArrayList<String> list = user.getWatchlist();
-		System.out.println("Lista ma " + list.size() + " pozycji!\n");
+		System.out.println("Lista ma " + list.size() + " pozycji!");
+
+		System.out.print("Wybierz gatunek: ");
+		String genre = input.nextLine();
+		System.out.println("Twój wybrany gatunek to " + genre);
+		if (!genre.equals("")){
+			ArrayList<String> finalListWithGenre = new ArrayList<String>();
+			for (String tempMovieURL : list){
+				String tempMovieData = connector.getMovie(tempMovieURL);
+				String tempGenre = getGenre(tempMovieData);
+				if(tempGenre.contains(genre)){
+					finalListWithGenre.add(tempMovieURL);
+				}
+			}
+			list.retainAll(finalListWithGenre);
+		}
+
+		System.out.println("Znaleziono " + list.size() + " wspólnych filmów o gatunku " + genre);
+
 		int randomMovieNumber = GENERATOR.nextInt(list.size());
 		String movieURL = user.getWatchlist().get(randomMovieNumber);
 
@@ -64,11 +82,29 @@ public class Main {
 
 		finalList = user1.compareTo(user2);
 		System.out.println("Znaleziono " + finalList.size()
-				+ " wspólnych filmów!\n");
+				+ " wspólnych filmów!");
+
+		System.out.print("Wybierz gatunek: ");
+		String genre = input.nextLine();
+		System.out.println("Twój wybrany gatunek to " + genre);
+		if (!genre.equals("")){
+			ArrayList<String> finalListWithGenre = new ArrayList<String>();
+			for (String tempMovieURL : finalList){
+				String tempMovieData = connector.getMovie(tempMovieURL);
+				String tempGenre = getGenre(tempMovieData);
+				if(tempGenre.contains(genre)){
+					finalListWithGenre.add(tempMovieURL);
+				}
+			}
+			finalList.retainAll(finalListWithGenre);
+		}
+
+		System.out.println("Znaleziono " + finalList.size() + " wspólnych filmów o gatunku " + genre);
 
 		int randomMovieNumber = GENERATOR.nextInt(finalList.size());
+		String movieURL = finalList.get(randomMovieNumber);
 
-		String movieData = connector.getMovie(finalList.get(randomMovieNumber));
+		String movieData = connector.getMovie(movieURL);
 
 		System.out.println("Film wylosowany dla Was to: " + getName(movieData)
 				+ " !");
@@ -77,6 +113,7 @@ public class Main {
 		System.out.println(getGenre(movieData));
 		System.out.println(getProduction(movieData));
 		System.out.println(getPoster(movieData));
+		System.out.println(getDescription(movieURL));
 	}
 
 	private static String getName(String movie) {
@@ -132,11 +169,17 @@ public class Main {
 	}
 
 	private static String getDescription(String movieURL) {
-		String descMovieURL = movieURL + "/descs";
-		String movieDescData = connector.getMovie(descMovieURL);
-		Document doc = Jsoup.parse(movieDescData);
-		Element content = getDescriptionTag(doc);
-		return content.text();
+		String result;
+		try {
+			String descMovieURL = movieURL + "/descs";
+			String movieDescData = connector.getMovie(descMovieURL);
+			Document doc = Jsoup.parse(movieDescData);
+			Element content = getDescriptionTag(doc);
+			result = content.text();
+		} catch ( Exception e ){
+			result = "Film nie posiada opisu.";
+		}
+		return result;
 	}
 
 	private static Element getDescriptionTag(Document doc) {
