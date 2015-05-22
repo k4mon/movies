@@ -1,44 +1,52 @@
 package k4.helper.movies;
 
 import java.util.ArrayList;
+import com.google.common.collect.Lists;
 
-public class User {
 
-	private String username;
-	private final String prefix = "http://www.filmweb.pl/user/";
-	private final String watchlistPostfix = "/films/wanna-see";
-	private ArrayList<String> moviesURLs;
-	private final String watchlistURL;
+public class User
+{
 
-	public User(String username) {
-		setUsername(username);
-		this.watchlistURL = prefix + username + watchlistPostfix;
-	}
+    private String username;
+    private ArrayList<Movie> watchlist;
 
-	public String getUsername() {
-		return username;
-	}
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public ArrayList<Movie> getWatchlist()
+    {
+        return watchlist;
+    }
 
-	public String getWatchlistURL() {
-		return watchlistURL;
-	}
 
-	public ArrayList<String> compareTo(User user2) {
-		ArrayList<String> results = this.getWatchlist();
-		results.retainAll(user2.getWatchlist());
-		return results;
-	}
+    public void setWatchlist( ArrayList<Movie> watchlist )
+    {
+        this.watchlist = watchlist;
+    }
 
-	public void setWatchlist(ArrayList<String> parseSourceForMovieList) {
-		this.moviesURLs = parseSourceForMovieList;
-	}
 
-	public ArrayList<String> getWatchlist() {
-		return moviesURLs;
-	}
+    public User( String username )
+    {
+        setUsername( username );
+        watchlist = Lists.newArrayList();
+    }
+
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+
+    public void setUsername( String username )
+    {
+        this.username = username;
+    }
+
+
+    public ArrayList<Movie> compareTo( User user2 )
+    {
+        ArrayList<Movie> results = this.getWatchlist();
+        results.retainAll( user2.getWatchlist() );
+        return results;
+    }
 
 }

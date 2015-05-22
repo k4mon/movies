@@ -6,86 +6,176 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 
-public class SiteDownloader {
-	
-	private URL connector;
-	private HttpURLConnection httpConnection;
-	private StringBuilder result;
-	
-	public String getWatchlist(User user){
-		System.out.println("Getting list for: " + user.getWatchlistURL());
-		result = new StringBuilder();
-		try {
-			openConnection(user);
-			setHttpConnectionParameters();
-			readSource();
-			closeConnection();
-		} catch (MalformedURLException e) {
-			System.out.println("Failed when setting URL!" + e);
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println("Failed when setting HttpURLConnection!" + e);
-			e.printStackTrace();
-		}
-		return result.toString();
-	}
-	
-	public String getMovie(String titleURLPostfix){
-		result = new StringBuilder();
-		try {
-			openConnectionToMovie(titleURLPostfix);
-			setHttpConnectionParameters();
-			readSource();
-			closeConnection();
-		} catch (MalformedURLException e) {
-			System.out.println("Failed when setting URL!" + e);
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println("Failed when setting HttpURLConnection!" + e);
-			e.printStackTrace();
-		}
-		return result.toString();
-	}
 
-	private void closeConnection() {
-		httpConnection.disconnect();
-	}
+public class SiteDownloader
+{
 
-	private void readSource() throws UnsupportedEncodingException, IOException {
-		BufferedReader in = new BufferedReader(new InputStreamReader(
-				httpConnection.getInputStream(), "UTF-8"));
-		String inputLine;
-		while ((inputLine = in.readLine()) != null)
-			result.append(inputLine);
-		in.close();
-	}
+    private static final String GENERAL_PREFIX = "http://www.filmweb.pl";
+    private static final String WATCHLIST_PREFIX = "/user/";
+    private static final String WATCHLIST_POSTFIX = "/films/wanna-see";
+    private static final String DESCRIPTION_POSTFIX = "/descs";
 
-	private void setHttpConnectionParameters() throws IOException,
-			ProtocolException {
-		httpConnection = (HttpURLConnection) connector.openConnection();
-		httpConnection.addRequestProperty("Host", "www.filmweb.pl");
-		httpConnection.addRequestProperty("Connection", "keep-alive");
-		httpConnection.addRequestProperty("Cache-Control", "max-age=0");
-		httpConnection.addRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-		httpConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36");
-		httpConnection.addRequestProperty("Accept-Encoding", "gzip,deflate,sdch");
-		httpConnection.addRequestProperty("Accept-Language", "en-US,en;q=0.8");
-		HttpURLConnection.setFollowRedirects(false);
-		httpConnection.setInstanceFollowRedirects(false);
-		httpConnection.setDoOutput(true);
-		httpConnection.setUseCaches(true);
-		httpConnection.setRequestMethod("GET");
-	}
 
-	private void openConnection(User user) throws MalformedURLException {
-		connector = new URL(user.getWatchlistURL());
-	}
-	
-	private void openConnectionToMovie(String titleURLPostfix) throws MalformedURLException{
-		connector = new URL("http://www.filmweb.pl" + titleURLPostfix);
-	}
-	
+    public String getWatchlistForUser( User user )
+    {
+        String result = "";
+        try
+        {
+            result = tryToGetWatchlistForUser( user );
+
+        }
+        catch( MalformedURLException e )
+        {
+            System.out.println( "Failed when setting URL!" + e );
+            e.printStackTrace();
+        }
+        catch( IOException e )
+        {
+            System.out.println( "Failed when setting HttpURLConnection!" + e );
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+
+    public String getMovie( String titleURLPostfix )
+    {
+        String result = "";
+        try
+        {
+            result = tryToGetMovieForTitleURLPostfix( titleURLPostfix );
+
+        }
+        catch( MalformedURLException e )
+        {
+            System.out.println( "Failed when setting URL!" + e );
+            e.printStackTrace();
+        }
+        catch( IOException e )
+        {
+            System.out.println( "Failed when setting HttpURLConnection!" + e );
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+
+    public String getMovieDescription( String titleURLPostfix )
+    {
+        String result = "";
+        try
+        {
+            result = tryToGetMovieDescriptionForTitleURLPostfix( titleURLPostfix );
+
+        }
+        catch( MalformedURLException e )
+        {
+            System.out.println( "Failed when setting URL!" + e );
+            e.printStackTrace();
+        }
+        catch( IOException e )
+        {
+            System.out.println( "Failed when setting HttpURLConnection!" + e );
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+
+    private String tryToGetWatchlistForUser( User user ) throws IOException
+    {
+        URL url = createURLForUserWatchlist( user ); // TODO change name to createWatchlistURLForUser
+        return tryToGetSourceForURL( url );
+    }
+
+
+    private String tryToGetMovieForTitleURLPostfix( String titleURLPostfix ) throws IOException
+    {
+        URL url = createURLForMovieFromPostfix( titleURLPostfix );
+        return tryToGetSourceForURL( url );
+    }
+
+
+    private String tryToGetMovieDescriptionForTitleURLPostfix( String titleURLPostfix ) throws IOException
+    {
+        URL url = createURLForMovieDescriptionFromPostfix( titleURLPostfix );
+        return tryToGetSourceForURL( url );
+    }
+
+
+    private String tryToGetSourceForURL( URL url ) throws IOException, UnsupportedEncodingException
+    {
+        HttpURLConnection connection = openConnection( url );
+        setHttpConnectionParameters( connection );
+        String result = readSource( connection );
+        closeConnection( connection );
+        return result;
+    }
+
+
+    private URL createURLForUserWatchlist( User user ) throws MalformedURLException
+    {
+        return new URL( GENERAL_PREFIX + WATCHLIST_PREFIX + user.getUsername() + WATCHLIST_POSTFIX );
+    }
+
+
+    private URL createURLForMovieFromPostfix( String titleURLPostfix ) throws MalformedURLException
+    {
+        return new URL( GENERAL_PREFIX + titleURLPostfix );
+    }
+
+
+    private URL createURLForMovieDescriptionFromPostfix( String titleURLPostfix ) throws MalformedURLException
+    {
+        return new URL( GENERAL_PREFIX + titleURLPostfix + DESCRIPTION_POSTFIX );
+    }
+
+
+    private HttpURLConnection openConnection( URL url ) throws IOException
+    {
+        return (HttpURLConnection)url.openConnection();
+    }
+
+
+    private void setHttpConnectionParameters( HttpURLConnection connection ) throws IOException
+    {
+        connection.addRequestProperty( "Host", "www.filmweb.pl" );
+        connection.addRequestProperty( "Connection", "keep-alive" );
+        connection.addRequestProperty( "Cache-Control", "max-age=0" );
+        connection.addRequestProperty( "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8" );
+        connection.addRequestProperty(
+            "User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36" );
+        connection.addRequestProperty( "Accept-Encoding", "gzip,deflate,sdch" );
+        connection.addRequestProperty( "Accept-Language", "en-US,en;q=0.8" );
+        connection.setFollowRedirects( false );
+        connection.setInstanceFollowRedirects( false );
+        connection.setDoOutput( true );
+        connection.setUseCaches( true );
+        connection.setRequestMethod( "GET" );
+
+    }
+
+
+    private String readSource( HttpURLConnection connection ) throws UnsupportedEncodingException, IOException
+    {
+        StringBuilder sourceCreator = new StringBuilder();
+        BufferedReader in = new BufferedReader( new InputStreamReader( connection.getInputStream(), "UTF-8" ) );
+        String inputLine;
+        while( (inputLine = in.readLine()) != null )
+            sourceCreator.append( inputLine );
+        in.close();
+        return sourceCreator.toString();
+    }
+
+
+    private void closeConnection( HttpURLConnection connection )
+    {
+        connection.disconnect();
+    }
+
 }
