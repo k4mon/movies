@@ -1,32 +1,18 @@
 package k4.helper.movies;
 
-import java.util.ArrayList;
-import com.google.common.collect.Lists;
+import java.util.HashMap;
 
 
 public class User
 {
 
     private String username;
-    private ArrayList<Movie> watchlist;
-
-
-    public ArrayList<Movie> getWatchlist()
-    {
-        return watchlist;
-    }
-
-
-    public void setWatchlist( ArrayList<Movie> watchlist )
-    {
-        this.watchlist = watchlist;
-    }
-
+    private HashMap<String, Movie> watchlist;
 
     public User( String username )
     {
         setUsername( username );
-        watchlist = Lists.newArrayList();
+        setWatchlist(MovieMapHandler.createMovieMap(username));
     }
 
 
@@ -41,12 +27,19 @@ public class User
         this.username = username;
     }
 
-
-    public ArrayList<Movie> compareTo( User user2 )
+    public HashMap<String, Movie> getWatchlist()
     {
-        ArrayList<Movie> results = this.getWatchlist();
-        results.retainAll( user2.getWatchlist() );
-        return results;
+        return watchlist;
     }
+
+
+    public void setWatchlist( HashMap<String, Movie> watchlist )
+    {
+        this.watchlist = watchlist;
+    }
+
+
+
+
 
 }

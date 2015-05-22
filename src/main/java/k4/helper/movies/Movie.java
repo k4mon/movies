@@ -1,7 +1,9 @@
 package k4.helper.movies;
 
-public class Movie
-{
+import java.io.Serializable;
+
+public class Movie implements Serializable {
+
     private String name;
     private String year;
     private String director;
@@ -9,89 +11,83 @@ public class Movie
     private String production;
     private String description;
     private String posterURL;
+    private String movieURL;
 
-
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
 
-    public void setName( String name )
-    {
+    public void setName(String name) {
         this.name = name;
     }
 
 
-    public String getYear()
-    {
+    public String getYear() {
         return year;
     }
 
 
-    public void setYear( String year )
-    {
+    public void setYear(String year) {
         this.year = year;
     }
 
 
-    public String getDirector()
-    {
+    public String getDirector() {
         return director;
     }
 
 
-    public void setDirector( String director )
-    {
+    public void setDirector(String director) {
         this.director = director;
     }
 
 
-    public String getGenre()
-    {
+    public String getGenre() {
         return genre;
     }
 
 
-    public void setGenre( String genre )
-    {
+    public void setGenre(String genre) {
         this.genre = genre;
     }
 
 
-    public String getProduction()
-    {
+    public String getProduction() {
         return production;
     }
 
 
-    public void setProduction( String production )
-    {
+    public void setProduction(String production) {
         this.production = production;
     }
 
 
-    public String getDescription()
-    {
+    public String getDescription() {
         return description;
     }
 
 
-    public void setDescription( String description )
-    {
+    public void setDescription(String description) {
         this.description = description;
     }
 
 
-    public String getPosterURL()
-    {
+    public String getPosterURL() {
         return posterURL;
     }
 
 
-    public void setPosterURL( String posterURL )
-    {
+    public void setPosterURL(String posterURL) {
         this.posterURL = posterURL;
+    }
+
+    public String getMovieURL() {
+        return movieURL;
+    }
+
+    public void setMovieURL(String movieURL) {
+        this.movieURL = movieURL;
     }
 
 }

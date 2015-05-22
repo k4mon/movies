@@ -1,0 +1,10 @@
+*.class
+.idea/.name
+.idea/compiler.xml
+.idea/libraries/Maven__org_apache_commons_commons_lang3_3_4.xml
+.idea/copyright/profiles_settings.xml
+.idea/libraries/Maven__com_google_guava_guava_18_0.xml
+*.xml
+*.ser
+*.MF
+*.iml

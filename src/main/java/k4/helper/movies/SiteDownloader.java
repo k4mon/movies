@@ -18,12 +18,12 @@ public class SiteDownloader
     private static final String DESCRIPTION_POSTFIX = "/descs";
 
 
-    public String getWatchlistForUser( User user )
+    public String getWatchlistForUser( String username )
     {
         String result = "";
         try
         {
-            result = tryToGetWatchlistForUser( user );
+            result = tryToGetWatchlistForUser( username );
 
         }
         catch( MalformedURLException e )
@@ -46,7 +46,7 @@ public class SiteDownloader
         String result = "";
         try
         {
-            result = tryToGetMovieForTitleURLPostfix( titleURLPostfix );
+            result = tryToGetMovieForTitleURLPostfix(titleURLPostfix);
 
         }
         catch( MalformedURLException e )
@@ -69,7 +69,7 @@ public class SiteDownloader
         String result = "";
         try
         {
-            result = tryToGetMovieDescriptionForTitleURLPostfix( titleURLPostfix );
+            result = tryToGetMovieDescriptionForTitleURLPostfix(titleURLPostfix);
 
         }
         catch( MalformedURLException e )
@@ -87,23 +87,23 @@ public class SiteDownloader
     }
 
 
-    private String tryToGetWatchlistForUser( User user ) throws IOException
+    private String tryToGetWatchlistForUser( String username ) throws IOException
     {
-        URL url = createURLForUserWatchlist( user ); // TODO change name to createWatchlistURLForUser
+        URL url = createURLForUserWatchlist( username );
         return tryToGetSourceForURL( url );
     }
 
 
     private String tryToGetMovieForTitleURLPostfix( String titleURLPostfix ) throws IOException
     {
-        URL url = createURLForMovieFromPostfix( titleURLPostfix );
+        URL url = createURLForMovieFromPostfix(titleURLPostfix);
         return tryToGetSourceForURL( url );
     }
 
 
     private String tryToGetMovieDescriptionForTitleURLPostfix( String titleURLPostfix ) throws IOException
     {
-        URL url = createURLForMovieDescriptionFromPostfix( titleURLPostfix );
+        URL url = createURLForMovieDescriptionFromPostfix(titleURLPostfix);
         return tryToGetSourceForURL( url );
     }
 
@@ -112,27 +112,39 @@ public class SiteDownloader
     {
         HttpURLConnection connection = openConnection( url );
         setHttpConnectionParameters( connection );
-        String result = readSource( connection );
+        String result = readSource(connection);
         closeConnection( connection );
         return result;
     }
 
 
-    private URL createURLForUserWatchlist( User user ) throws MalformedURLException
+    private URL createURLForUserWatchlist( String username ) throws MalformedURLException
     {
-        return new URL( GENERAL_PREFIX + WATCHLIST_PREFIX + user.getUsername() + WATCHLIST_POSTFIX );
+        return new URL( getAddressForUserWatchlist(username) );
+    }
+
+    public String getAddressForUserWatchlist(String username){
+        return GENERAL_PREFIX + WATCHLIST_PREFIX + username + WATCHLIST_POSTFIX;
     }
 
 
     private URL createURLForMovieFromPostfix( String titleURLPostfix ) throws MalformedURLException
     {
-        return new URL( GENERAL_PREFIX + titleURLPostfix );
+        return new URL( getAddressForMovieFromPostfix(titleURLPostfix) );
+    }
+
+    public String getAddressForMovieFromPostfix( String titleURLPostfix ){
+        return GENERAL_PREFIX + titleURLPostfix;
     }
 
 
     private URL createURLForMovieDescriptionFromPostfix( String titleURLPostfix ) throws MalformedURLException
     {
-        return new URL( GENERAL_PREFIX + titleURLPostfix + DESCRIPTION_POSTFIX );
+        return new URL( getAddressForMovieDescriptionFromPostfix(titleURLPostfix) );
+    }
+
+    public String getAddressForMovieDescriptionFromPostfix( String titleURLPostfix ){
+        return getAddressForMovieFromPostfix(titleURLPostfix) + DESCRIPTION_POSTFIX;
     }
 
 

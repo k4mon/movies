@@ -1,66 +1,66 @@
 package k4.helper.movies;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Scanner;
-
-import com.google.common.collect.Lists;
+import java.util.*;
 
 
 public class Main
 {
 
-    private static SiteDownloader connector = new SiteDownloader();
-    private static SiteParser parser = new SiteParser();
+
     private final static Random GENERATOR = new Random();
     private static Scanner input = new Scanner( System.in );
-
 
     public static void main( String[] args )
     {
 
-        System.out.print( "Podaj pierwszego użytkownika: " );
+        System.out.print("Podaj pierwszego użytkownika: ");
         String name1 = input.nextLine();
-        System.out.print( "Podaj drugiego użytkownika: " );
+        System.out.print("Podaj drugiego użytkownika: ");
         String name2 = input.nextLine();
         if( name2.equals( "" ) )
         {
-            getMovieList( name1 );
+            User user = new User(name1);
+            getMovieList( user );
+            MovieMapHandler.serializeUserMovieMapToFile(user);
         }
         else
         {
-            getMovieList( name1, name2 );
+            User user1 = new User(name1);
+            User user2 = new User(name2);
+            getMovieList( user1, user2 );
+            MovieMapHandler.serializeUserMovieMapToFile(user1);
+            MovieMapHandler.serializeUserMovieMapToFile(user2);
         }
         input.close();
     }
 
 
-    private static void getMovieList( String username )
+    private static void getMovieList( User user )
     {
-        User user = new User( username );
-        user.setWatchlist( createWatchList( user ) );
-        ArrayList<Movie> userWatchlist = user.getWatchlist();
-        System.out.println( "Lista ma " + user.getWatchlist().size() + " pozycji!" );
+        HashMap<String,Movie> userWatchlist = new HashMap<String,Movie>(user.getWatchlist());
+        System.out.println( "Lista ma " + userWatchlist.size() + " pozycji!" );
 
         System.out.print( "Wybierz gatunek: " );
         String genre = input.nextLine();
         System.out.println( "Twój wybrany gatunek to " + genre );
         if( !genre.equals( "" ) )
         {
-
-            for( Movie movie : user.getWatchlist() )
-            {
-                if( movie.getGenre().contains( genre ) )
-                {
-                    userWatchlist.remove( movie );
+            Iterator<Map.Entry<String, Movie>> iterator = userWatchlist.entrySet().iterator();
+            while(iterator.hasNext()){
+                Map.Entry<String, Movie> entry = iterator.next();
+                if (!entry.getValue().getGenre().contains(genre)){
+                    iterator.remove();
                 }
             }
         }
 
-        System.out.println( "Znaleziono " + userWatchlist.size() + " wspólnych filmów o gatunku " + genre );
+        System.out.println("Znaleziono " + userWatchlist.size() + " wspólnych filmów o gatunku " + genre);
 
-        int randomMovieNumber = GENERATOR.nextInt( userWatchlist.size() );
-        Movie finalMovie = userWatchlist.get( randomMovieNumber );
+        List<String> valuesList = new ArrayList<String>(userWatchlist.keySet());
+        int randomMovieNumber = GENERATOR.nextInt( valuesList.size() );
+        String randomMovieKey = valuesList.get(randomMovieNumber);
+
+        Movie finalMovie = userWatchlist.get( randomMovieKey );
 
         System.out.println( "Twój film na dzisiaj to: " + finalMovie.getName() );
         System.out.println( finalMovie.getYear() );
@@ -72,28 +72,9 @@ public class Main
     }
 
 
-    private static ArrayList<Movie> createWatchList( User user )
+    private static void getMovieList( User user1, User user2 )
     {
-        ArrayList<Movie> movieList = Lists.newArrayList();
-        for( String movieMidfix : parser.parseWatchlistSourceForMovieList( connector.getWatchlistForUser( user ) ) )
-        {
-            String movieSource = connector.getMovie( movieMidfix );
-            String descriptionSource = connector.getMovieDescription( movieMidfix );
-            movieList.add( parser.parseMovieSourceForMovie( movieSource, descriptionSource ) );
-        }
-        return movieList;
-    }
-
-
-    private static void getMovieList( String username1, String username2 )
-    {
-        ArrayList<Movie> listOfBothUsersMovies = Lists.newArrayList();
-        User user1 = new User( username1 );
-        User user2 = new User( username2 );
-        user1.setWatchlist( createWatchList( user1 ) );
-        user2.setWatchlist( createWatchList( user2 ) );
-
-        listOfBothUsersMovies = user1.compareTo( user2 );
+        HashMap<String, Movie> listOfBothUsersMovies = MovieMapHandler.createSharedMovieMap(user1, user2);
         System.out.println( "Znaleziono " + listOfBothUsersMovies.size() + " wspólnych filmów!" );
 
         System.out.print( "Wybierz gatunek: " );
@@ -101,28 +82,34 @@ public class Main
         System.out.println( "Twój wybrany gatunek to " + genre );
         if( !genre.equals( "" ) )
         {
-
-            for( Movie movie : listOfBothUsersMovies )
-            {
-                if( !movie.getGenre().contains( genre ) )
-                {
-                    listOfBothUsersMovies.remove( movie );
+            Iterator<Map.Entry<String, Movie>> iterator = listOfBothUsersMovies.entrySet().iterator();
+            while(iterator.hasNext()){
+                Map.Entry<String, Movie> entry = iterator.next();
+                if (!entry.getValue().getGenre().contains(genre)){
+                    iterator.remove();
                 }
             }
         }
 
-        System.out.println( "Znaleziono " + listOfBothUsersMovies.size() + " wspólnych filmów o gatunku " + genre );
+        if(listOfBothUsersMovies.isEmpty()){
+            System.out.println( "Nie znaleziono wspólnych filmów o gatunku " + genre );
+        }
+        else{
+            System.out.println( "Znaleziono " + listOfBothUsersMovies.size() + " wspólnych filmów o gatunku " + genre );
 
-        int randomMovieNumber = GENERATOR.nextInt( listOfBothUsersMovies.size() );
-        Movie finalMovie = listOfBothUsersMovies.get( randomMovieNumber );
+            List<String> valuesList = new ArrayList<String>(listOfBothUsersMovies.keySet());
+            int randomMovieNumber = GENERATOR.nextInt( valuesList.size() );
+            String randomMovieKey = valuesList.get(randomMovieNumber);
 
-        System.out.println( "Film wylosowany dla Was to: " + finalMovie.getName() );
-        System.out.println( finalMovie.getYear() );
-        System.out.println( finalMovie.getDirector() );
-        System.out.println( finalMovie.getGenre() );
-        System.out.println( finalMovie.getProduction() );
-        System.out.println( finalMovie.getPosterURL() );
-        System.out.println( finalMovie.getDescription() );
+            Movie finalMovie = listOfBothUsersMovies.get( randomMovieKey );
+
+            System.out.println( "Film wylosowany dla Was to: " + finalMovie.getName() );
+            System.out.println( finalMovie.getYear() );
+            System.out.println( finalMovie.getDirector() );
+            System.out.println( finalMovie.getGenre() );
+            System.out.println( finalMovie.getProduction() );
+            System.out.println( finalMovie.getPosterURL() );
+            System.out.println( finalMovie.getDescription() );
+        }
     }
-
 }
