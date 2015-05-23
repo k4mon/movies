@@ -54,21 +54,26 @@ public class Main
             }
         }
 
-        System.out.println("Znaleziono " + userWatchlist.size() + " wspólnych filmów o gatunku " + genre);
+        if(userWatchlist.isEmpty()){
+            System.out.println( "Nie znaleziono filmów o gatunku " + genre );
+        }
+        else{
+            System.out.println("Znaleziono " + userWatchlist.size() + " wspólnych filmów o gatunku " + genre);
 
-        List<String> valuesList = new ArrayList<String>(userWatchlist.keySet());
-        int randomMovieNumber = GENERATOR.nextInt( valuesList.size() );
-        String randomMovieKey = valuesList.get(randomMovieNumber);
+            List<String> valuesList = new ArrayList<String>(userWatchlist.keySet());
+            int randomMovieNumber = GENERATOR.nextInt( valuesList.size() );
+            String randomMovieKey = valuesList.get(randomMovieNumber);
 
-        Movie finalMovie = userWatchlist.get( randomMovieKey );
+            Movie finalMovie = userWatchlist.get( randomMovieKey );
 
-        System.out.println( "Twój film na dzisiaj to: " + finalMovie.getName() );
-        System.out.println( finalMovie.getYear() );
-        System.out.println( finalMovie.getDirector() );
-        System.out.println( finalMovie.getGenre() );
-        System.out.println( finalMovie.getProduction() );
-        System.out.println( finalMovie.getPosterURL() );
-        System.out.println( finalMovie.getDescription() );
+            System.out.println( "Twój film na dzisiaj to: " + finalMovie.getName() );
+            System.out.println( finalMovie.getYear() );
+            System.out.println( finalMovie.getDirector() );
+            System.out.println( finalMovie.getGenre() );
+            System.out.println( finalMovie.getProduction() );
+            System.out.println( finalMovie.getPosterURL() );
+            System.out.println( finalMovie.getDescription() );
+        }
     }
 
 

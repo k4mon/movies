@@ -86,14 +86,19 @@ public class SiteParser {
 
 
     private String getMovieProductionFromSource(String movieSource) {
-        Document doc = Jsoup.parse(movieSource);
-        Elements content = doc.getElementsByAttributeValueContaining("href", "/search/film?countryIds=");
-        String result = "";
-        for (Element element : content) {
-            result += (element.text() + ", ");
+        String production = "";
+        try {
+            Document doc = Jsoup.parse(movieSource);
+            Elements content = doc.getElementsByAttributeValueContaining("href", "/search/film?countryIds=");
+            for (Element element : content) {
+                production += (element.text() + ", ");
+            }
+            production = production.substring(0, production.length() - 2);
+        } catch (Exception e){
+            production = "brak";
         }
-        result = result.substring(0, result.length() - 2);
-        return result;
+
+        return production;
     }
 
 
