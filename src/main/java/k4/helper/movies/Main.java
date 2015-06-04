@@ -42,7 +42,7 @@ public class Main
 
         System.out.print( "Wybierz gatunek: " );
         String genre = input.nextLine();
-        System.out.println( "Twój wybrany gatunek to " + genre );
+        System.out.println("Twój wybrany gatunek to " + genre);
         if( !genre.equals( "" ) )
         {
             Iterator<Map.Entry<String, Movie>> iterator = userWatchlist.entrySet().iterator();
@@ -55,10 +55,13 @@ public class Main
         }
 
         if(userWatchlist.isEmpty()){
-            System.out.println( "Nie znaleziono filmów o gatunku " + genre );
+            System.out.println("Nie znaleziono filmów o gatunku " + genre);
         }
         else{
             System.out.println("Znaleziono " + userWatchlist.size() + " wspólnych filmów o gatunku " + genre);
+
+            showFilteredMovies(userWatchlist);
+
 
             List<String> valuesList = new ArrayList<String>(userWatchlist.keySet());
             int randomMovieNumber = GENERATOR.nextInt( valuesList.size() );
@@ -70,9 +73,15 @@ public class Main
             System.out.println( finalMovie.getYear() );
             System.out.println( finalMovie.getDirector() );
             System.out.println( finalMovie.getGenre() );
-            System.out.println( finalMovie.getProduction() );
-            System.out.println( finalMovie.getPosterURL() );
-            System.out.println( finalMovie.getDescription() );
+            System.out.println(finalMovie.getProduction());
+            System.out.println(finalMovie.getPosterURL());
+            System.out.println(finalMovie.getDescription());
+        }
+    }
+
+    private static void showFilteredMovies(HashMap<String, Movie> userWatchlist) {
+        for(String key : userWatchlist.keySet()){
+            System.out.println(userWatchlist.get(key).getName() + " , " + userWatchlist.get(key).getYear());
         }
     }
 
@@ -101,6 +110,8 @@ public class Main
         }
         else{
             System.out.println( "Znaleziono " + listOfBothUsersMovies.size() + " wspólnych filmów o gatunku " + genre );
+
+            showFilteredMovies(listOfBothUsersMovies);
 
             List<String> valuesList = new ArrayList<String>(listOfBothUsersMovies.keySet());
             int randomMovieNumber = GENERATOR.nextInt( valuesList.size() );
